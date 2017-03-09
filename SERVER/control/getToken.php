@@ -15,7 +15,7 @@ $name        = $_POST["name"];
 $portraitUri = "http://img.xmpig.com/forum/201610/20/201816z4zvp3zov8vtpp5g.jpg";
 $role        = $_POST["role"];
 $rcArr       = array(
-    'Token'  => "dl2+m3L6RK2WI/Tygi5IRM4A5zZAM+Uuq+8DiG9qabt9lJZEQmJ7R0QD+ITkN1KfPwBWqTSM2haxzoS33b2Bgw==",
+    'Token'  => "xm7t5tBajFVZvQ6AeifwWHquDCdi0JfiOlIY+u/RT1ov/JV3R9myhLmXkl7wMY1B+Zd+N08soIvxkf1Fcp8qLRt7hcWpKfz3",
     'AppKey' => $AppKey
 );
 $rcJSON = json_encode($rcArr);

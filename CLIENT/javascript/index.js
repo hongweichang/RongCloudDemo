@@ -4,58 +4,71 @@ RongWebModule.controller("RongWebController", ["$scope", "WebIMWidget", "$http",
 
     $scope.targetType = 1; //1：私聊 更多会话类型查看http://www.rongcloud.cn/docs/api/js/global.html#ConversationType
     $scope.targetId = null;
+    $scope.mark = false;
+    $scope.initProviderMark = true;
 
-    //注意实际应用中 appkey 、 token 使用自己从融云服务器注册的。
-    WebIMWidget.init({
-        appkey: "bmdehs6pdw0ss",
-        token: "byavLZum2sE0WgSav7HyrGmWxWM7S9FuTBrjDXeo1q4CaebTMKXNPfZAVYG99aIBa36aVMvkZzuZjfEOfKApsQ==",
-        displayConversationList: true,
-        style:{
-            left:3,
-            bottom:3,
-            width:430
-        },
-        onSuccess: function(id) {
-            $scope.user = id;
-            document.title = '用户：' + id;
-            console.log('连接成功：' + id);
-        },
-        onError: function(error) {
-            console.log('连接失败：' + error);
+    $scope.initialization = function () {
+        WebIMWidget.init({
+            appkey: AppKey,
+            token: Token,
+            displayConversationList: true,
+            conversationListPosition: WebIMWidget.EnumConversationListPosition.right,
+            displayMinButton: true,
+            style:{
+                right: 3,
+                bottom: 3,
+                width: 500,
+                height: 600,
+                positionFixed: false
+            },
+            onSuccess: function(id) {
+                $scope.user = id;
+                $scope.mark = true;
+                document.title = '用户：' + id;
+                console.log($scope);
+                // console.log('连接成功：' + id);
+            },
+            onError: function(error) {
+                // console.log('连接失败：' + error);
+            }
+        });
+        $scope.initProvider();
+    }
+    $scope.initProvider = function () {
+        if ($scope.initProviderMark && !!$scope.targetId) {
+            WebIMWidget.setUserInfoProvider(function(targetId, obj) {
+                obj.onSuccess({
+                    name: "用户aaaa：" + targetId
+                });
+            });
+            WebIMWidget.setGroupInfoProvider(function(targetId, obj){
+                obj.onSuccess({
+                    name:'群组：' + targetId
+                });
+            });
+            $scope.initProviderMark = false;
         }
-    });
-
-    WebIMWidget.setUserInfoProvider(function(targetId, obj) {
-        obj.onSuccess({
-            name: "用户：" + targetId
-        });
-    });
-
-    WebIMWidget.setGroupInfoProvider(function(targetId, obj){
-        obj.onSuccess({
-            name:'群组：' + targetId
-        });
-    })
-
+    }
     $scope.setconversation = function() {
-        if (!!$scope.targetId) {
-            WebIMWidget.setConversation(Number($scope.targetType), $scope.targetId, "用户：" + $scope.targetId);
+        if (!!$scope.targetId && $scope.mark) {
+            $scope.initProvider();
+            WebIMWidget.setConversation(Number($scope.targetType), $scope.targetId, "用户xxxxxxxx：" + $scope.targetId);
             WebIMWidget.show();
         }
     }
 
     $scope.show = function() {
         WebIMWidget.show();
-    };
+    }
 
     $scope.hidden = function() {
         WebIMWidget.hidden();
-    };
+    }
 
-    WebIMWidget.show();
+    // WebIMWidget.show();
 
 
-    // 示例：获取 userinfo.json 中数据，根据 targetId 获取对应用户信息
+    // // 示例：获取 userinfo.json 中数据，根据 targetId 获取对应用户信息
     // WebIMWidget.setUserInfoProvider(function(targetId,obj){
     //     $http({
     //       url:"/userinfo.json"
