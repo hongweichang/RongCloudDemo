@@ -100,7 +100,7 @@
         // var Token = null;
         var targetId                  = "1";
         var AppKey                    = "ik1qhw09i234p";
-        var Token                     = "JWX7K6HsPkfvZbueg68fNXquDCdi0JfiOlIY+u/RT1ov/JV3R9myhCNz4U+ENjlkvXL68oXCeUgj5rl6YL+a0w==";
+        var Token                     = "krNPbc8mt9sG4NNuXyqqdc4A5zZAM+Uuq+8DiG9qabt9lJZEQmJ7R4/Uz2dOnC/q6FUBZ5H9QmWxzoS33b2Bgw==";
         var RongIMClient              = null;
         var RongCloudMessagesInnerDom = $(".rongcloud-MessagesInner").eq(0); //会话展现wrap对象
         var RongConversationListDom   = $("#rong-conversation-list"); //列表区Dom
@@ -421,7 +421,7 @@
                                 targetIdJson[senderUserId] = true;
                                 addListTip(senderUserId, senderUserId);
                             }
-                            if (senderUserId == targetId) {
+                            if (senderUserId == targetId || targetId === null) {
                                 addConversationSaying(message);
                                 RongCloudMessagesInnerDom.parent().scrollTop(RongCloudMessagesInnerDom.height());
                             }
@@ -499,7 +499,12 @@
         function getHistory(count) {
             var conversationType = RongIMLib.ConversationType.PRIVATE; //私聊,其他会话选择相应的消息类型即可。
             var timestrap = 0; // 默认传 null，若从头开始获取历史消息，请赋值为 0 ,timestrap = 0;
-            count = count ? count : 20; // 每次获取的历史消息条数，默认范围 0-20 条，可以多次获取。
+            if (count > 20 || !count) {
+                count = 20;    // 每次获取的历史消息条数，默认范围 0-20 条，可以多次获取
+            }
+            else if (count == 1) {
+                count = 2;
+            }
             if (targetId) {
                 RongIMLib.RongIMClient.getInstance().getHistoryMessages(conversationType, targetId, timestrap, count, {
                     onSuccess: function(list, hasMsg) {

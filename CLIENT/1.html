@@ -98,9 +98,9 @@
     <script type="text/javascript">
         // var AppKey = null;
         // var Token = null;
-        var targetId                  = "2";
+        var targetId                  = null;
         var AppKey                    = "ik1qhw09i234p";
-        var Token                     = "UYW9LnnMBtyWPXuenXDWg84A5zZAM+Uuq+8DiG9qabt9lJZEQmJ7RzwVB11r0BhaGKOcduhorcGxzoS33b2Bgw==";
+        var Token                     = "VP0ZdYropmGlbsLs+5NlyXquDCdi0JfiOlIY+u/RT1ov/JV3R9myhP2bLOW96DXsbPEAgGQkW74j5rl6YL+a0w==";
         var RongIMClient              = null;
         var RongCloudMessagesInnerDom = $(".rongcloud-MessagesInner").eq(0); //会话展现wrap对象
         var RongConversationListDom   = $("#rong-conversation-list"); //列表区Dom
@@ -111,98 +111,98 @@
         var inputMsgDom               = $("#inputMsg");
         var RongCloudList             = $(".rongcloud-content").eq(0);
         var targetIdJson              = {};
+        var unreadMsgStorage          = {};
+        var unreadMsgJson             = {};
     </script>
-    <!-- e 设置全局变量 -->
 
     <!-- s 最小化与最大化 -->
-    <script type="text/javascript">
-        function minbtn() {
-            RongConversationDom.hide(); //会话区关闭
-            RongConversationListDom.hide(); //列表区关闭
-            RongWidgetMinBtnDom.show(); //最小化标签展现
-        }
-
-        function showbtn() {
-            RongConversationDom.show(); //会话区show
-            RongConversationListDom.show(); //列表区show
-            RongWidgetMinBtnDom.hide(); //最小化标签hide
-        }
-
-        function closeConversation() {
-            var str = "<div class='rongcloud-Messages-history'>"+
-                "<b onclick='getHistory()'>查看历史消息</b>"+
-                "</div>";
-            RongConversationDom.hide(); //会话区hide
-            RongCloudMessagesInnerDom.html(str); //清空会话展现区
-        }
-
-        function minimize() {
-            RongConversationDom.hide(); //会话区hide
-        }
-    </script>
-    <!-- e 最小化与最大化 -->
+    <script type="text/javascript" src="./js/minAndMax.js"></script>
 
     <!-- s 掉线通知 -->
-    <script type="text/javascript">
-        function outLineWarning(warningMsg) {
-            ConversationOutLineBoxDom.find("span").eq(0).html(warningMsg);
-            ListOutLineBoxDom.find("span").eq(0).html(warningMsg);
-            ConversationOutLineBoxDom.show();
-            ListOutLineBoxDom.show();
-        }
-    </script>
-    <!-- e 掉线通知 -->
+    <script type="text/javascript" src="./js/outLine.js"></script>
 
     <!-- s 清除列表 -->
-    <script type="text/javascript">
-        function remove(thisDom) {
-            var str = "<div class='rongcloud-Messages-history'>"+
-                "<b onclick='getHistory()'>查看历史消息</b>"+
-                "</div>";
-            var wrapDom = thisDom.parents(".father-sign").eq(0);
-            var id = wrapDom.attr("data-target-id");
-            targetIdJson[id] = false;
-            wrapDom.remove();
-            RongCloudMessagesInnerDom.html(str);
-        }
-    </script>
-    <!-- e 清除列表 -->
+    <script type="text/javascript" src="./js/removeList.js"></script>
 
     <!-- s 打开会话区 -->
     <script type="text/javascript">
         function showConversation(thisDom) {
-            var str = "<div class='rongcloud-Messages-history'>"+
-                "<b onclick='getHistory()'>查看历史消息</b>"+
+            unreadMsgJson[targetId] = 0;
+            thisTargetId = thisDom.attr("data-target-id");
+            if (thisTargetId != targetId) {
+                targetId = thisTargetId;
+                var htmlStr = "<div class='rongcloud-Messages-history'>" +
+                "<b onclick='getHistory()'>查看历史消息</b>" +
                 "</div>";
-            RongCloudMessagesInnerDom.html(str);
-            targetId = thisDom.attr("data-target-id");
-            var badgeMark = thisDom.attr("data-badge");
-            if (badgeMark) {
-                thisDom.find(".rongcloud-badge").remove();
-                thisDom.attr("data-badge", "");
-                loadUnreadMsg();
-                getHistory();
+                RongCloudMessagesInnerDom.html(htmlStr);
+                if (thisDom.attr("data-badge")) {
+                    thisDom.find(".rongcloud-badge").remove();
+                    thisDom.attr("data-badge", "");
+                    loadUnreadMsg(function (count) {
+                        console.log(count);
+                        getHistory(count);
+                    });
+                }
+                RongConversationDom.attr("data-current-target-id", targetId);
+                RongConversationDom.find(".rongcloud-kefuName").text("客户：" + targetId);
+                RongConversationDom.show();
             }
-            RongConversationDom.attr("data-current-target-id", targetId);
-            RongConversationDom.find(".rongcloud-kefuName").text("客户：" + targetId);
-            RongConversationDom.show();
         }
     </script>
-    <!-- e 打开会话区 -->
+
+
+    <!-- s 发送文本消息 -->
+    <script type="text/javascript">
+        function sendTextMsg(saying) {
+            var msg = new RongIMLib.TextMessage({
+                content: saying,
+                extra: "liyusky"
+            });
+            var conversationtype = RongIMLib.ConversationType.PRIVATE; // 私聊,其他会话选择相应的消息类型即可。
+            RongIMClient.getInstance().sendMessage(conversationtype, targetId, msg, {
+                onSuccess: function(message) {},
+                onError: function(errorCode, message) {
+                    var info = '';
+                    switch (errorCode) {
+                        case RongIMLib.ErrorCode.TIMEOUT:
+                            info = '超时';
+                            break;
+                        case RongIMLib.ErrorCode.UNKNOWN_ERROR:
+                            info = '未知错误';
+                            break;
+                        case RongIMLib.ErrorCode.REJECTED_BY_BLACKLIST:
+                            info = '在黑名单中，无法向对方发送消息';
+                            break;
+                        case RongIMLib.ErrorCode.NOT_IN_DISCUSSION:
+                            info = '不在讨论组中';
+                            break;
+                        case RongIMLib.ErrorCode.NOT_IN_GROUP:
+                            info = '不在群组中';
+                            break;
+                        case RongIMLib.ErrorCode.NOT_IN_CHATROOM:
+                            info = '不在聊天室中';
+                            break;
+                    }
+                    console.log('发送失败:' + info);
+                }
+            });
+            addConversationSaying(msg);
+        }
+    </script>
+    <!-- e 发送文本消息 -->
 
     <!-- s 发送消息 -->
     <script type="text/javascript">
         function send() {
             var saying = inputMsgDom.val();
             if (saying) {
-                addConversationSaying(saying, "我", true);
                 if (!targetIdJson[targetId]) {
                     targetIdJson[targetId] = true;
                     addListTip(targetId, targetId);
                 }
+                sendTextMsg(saying);
                 RongCloudMessagesInnerDom.parent().scrollTop(RongCloudMessagesInnerDom.height());
                 inputMsgDom.val("");
-                sendTextMsg(saying);
             }
         }
     </script>
@@ -210,44 +210,60 @@
 
     <!-- s 展示消息 -->
     <script type="text/javascript">
-        function addConversationSaying(saying, name, sign) {
-            var src = "";
-            var str = null;
-            if (sign) { //我
-                str = "<div class='rongcloud-Message'>" +
-                    "<div class='rongcloud-Messages-unreadLine'></div>" +
-                    "<div class='rongcloud-Message-header'>" +
-                    "<img class='rongcloud-img rongcloud-u-isActionable rongcloud-Message-avatar rongcloud-avatar' src='http://7xo1cb.com1.z0.glb.clouddn.com/rongcloudkefu2.png'>" +
-                    "<div class='rongcloud-Message-author rongcloud-clearfix'>" +
-                    "<a class='rongcloud-author rongcloud-u-isActionable'>" + name + "</a>" +
-                    "</div>" +
-                    "</div>" +
-                    "<div class='rongcloud-Message-body'>" +
-                    "<div class='rongcloud-Message-text'>" +
-                    "<pre class='rongcloud-Message-entry'>" + saying + "</pre>" +
-                    "</div>" +
-                    "</div>" +
-                    "</div>";
+        function setSayingHtml(message) {
+            var saying = message.content.content ? message.content.content : message.content;
+            var name = message.content.extra ? message.content.extra : message.extra;
+            var htmlStr;
+            if (message.senderUserId == targetId) {        // 发送者id == 接受者ID  即此条消息是对方发送
+                htmlStr = "<div class='rongcloud-Message'>" +
+                "<div class='rongcloud-Messages-unreadLine'></div>" +
+                "<div class='rongcloud-Message-header'>" +
+                "<img class='rongcloud-img rongcloud-u-isActionable rongcloud-Message-avatar rongcloud-avatar' src='http://7xo1cb.com1.z0.glb.clouddn.com/rongcloudkefu2.png'>" +
+                "<div class='rongcloud-Message-author rongcloud-clearfix'>" +
+                "<a class='rongcloud-author rongcloud-u-isActionable'>" + name + "</a>" +
+                "</div>" +
+                "</div>" +
+                "<div class='rongcloud-Message-body'>" +
+                "<div class='rongcloud-Message-text'>" +
+                "<pre class='rongcloud-Message-entry'>" + saying + "</pre>" +
+                "</div>" +
+                "</div>" +
+                "</div>";
             }
-            else { // 对方
-                str = "<div class='rongcloud-Message' style='padding-left: 0;padding-right: 3pc;'>" +
-                    "<div class='rongcloud-Messages-unreadLine'></div>" +
-                    "<div>" +
-                    "<div class='rongcloud-Message-header' style='text-align:right;'>" +
-                    "<a style='color:#8e969f;'>"　 + 　name + 　"</a>" +
-                    "<img style='margin-left: 1pc;' class='rongcloud-img rongcloud-u-isActionable rongcloud-Message-avatar rongcloud-avatar' src='http://7xo1cb.com1.z0.glb.clouddn.com/rongcloudkefu2.png'>" +
-                    "</div>" +
-                    "</div>" +
-                    "<div class='rongcloud-Message-body' style='text-align:right;'>" +
-                    "<div>" +
-                    "<div class='rongcloud-Message-text'>" +
-                    "<pre class='rongcloud-Message-entry'>" + saying + "</pre>" +
-                    "</div>" +
-                    "</div>" +
-                    "</div>" +
-                    "</div>";
+            else {                                        //我方发送
+                htmlStr = "<div class='rongcloud-Message' style='padding-left: 0;padding-right: 3pc;'>" +
+                "<div class='rongcloud-Messages-unreadLine'></div>" +
+                "<div>" +
+                "<div class='rongcloud-Message-header' style='text-align:right;'>" +
+                "<a style='color:#8e969f;'>我</a>" +
+                "<img style='margin-left: 1pc;' class='rongcloud-img rongcloud-u-isActionable rongcloud-Message-avatar rongcloud-avatar' src='http://7xo1cb.com1.z0.glb.clouddn.com/rongcloudkefu2.png'>" +
+                "</div>" +
+                "</div>" +
+                "<div class='rongcloud-Message-body' style='text-align:right;'>" +
+                "<div>" +
+                "<div class='rongcloud-Message-text'>" +
+                "<pre class='rongcloud-Message-entry'>" + saying + "</pre>" +
+                "</div>" +
+                "</div>" +
+                "</div>" +
+                "</div>";
             }
-            RongCloudMessagesInnerDom.children().last().after(str);
+            return htmlStr;
+        }
+
+        function addConversationSaying(messageArgs) {
+            var htmlStr = "";
+            if ($.isArray(messageArgs)) { //消息列表
+                var len = messageArgs.length;
+                for (var i = 0; i < len; i++) {
+                    htmlStr += setSayingHtml(messageArgs[i]);
+                }
+                RongCloudMessagesInnerDom.children().first().after(htmlStr);
+            }
+            else {    //单读发送或读取的消息
+                htmlStr = setSayingHtml(messageArgs);
+                RongCloudMessagesInnerDom.children().last().after(htmlStr);
+            }
         }
     </script>
     <!-- e 展示消息 -->
@@ -255,31 +271,30 @@
     <!-- s 添加列表区用户 -->
     <script type="text/javascript">
         function addListTip(targetId, name) {
-            var str = "<div class='father-sign' data-target-id='" + targetId + "' data-badge='' onclick='showConversation($(this))'>"+
-                "<div class='rongcloud-chatList'>"+
-                "<div class='rongcloud-chat_item'>"+
-                "<div class='rongcloud-ext'>"+
-                "<p class='rongcloud-attr clearfix'>"+
-                "<i class='rongcloud-sprite rongcloud-no-remind' onclick='remove($(this))'></i>"+
-                "</p>"+
-                "</div>"+
-                "<div class='rongcloud-photo'>"+
-                "<img class='rongcloud-img' src='http://7xo1cb.com1.z0.glb.clouddn.com/rongcloudkefu2.png'>"+
-                "<i class='rongcloud-Presence rongcloud-Presence--stacked rongcloud-Presence--mainBox'></i>"+
-                "</div>"+
-                "<div class='rongcloud-info'>"+
-                "<h3 class='rongcloud-nickname'>"+
-                "<span class='rongcloud-nickname_text' title=''>" + name + "</span>"+
-                "</h3>"+
-                "</div>"+
-                "</div>"+
-                "</div>"+
+            var str = "<div class='father-sign' data-target-id='" + targetId + "' data-badge='' onclick='showConversation($(this))'>" +
+                "<div class='rongcloud-chatList'>" +
+                "<div class='rongcloud-chat_item'>" +
+                "<div class='rongcloud-ext'>" +
+                "<p class='rongcloud-attr clearfix'>" +
+                "<i class='rongcloud-sprite rongcloud-no-remind' onclick='remove($(this))'></i>" +
+                "</p>" +
+                "</div>" +
+                "<div class='rongcloud-photo'>" +
+                "<img class='rongcloud-img' src='http://7xo1cb.com1.z0.glb.clouddn.com/rongcloudkefu2.png'>" +
+                "<i class='rongcloud-Presence rongcloud-Presence--stacked rongcloud-Presence--mainBox'></i>" +
+                "</div>" +
+                "<div class='rongcloud-info'>" +
+                "<h3 class='rongcloud-nickname'>" +
+                "<span class='rongcloud-nickname_text' title=''>" + name + "</span>" +
+                "</h3>" +
+                "</div>" +
+                "</div>" +
+                "</div>" +
                 "</div>";
             RongCloudList.children().last().after(str);
         }
     </script>
     <!-- e 添加列表区用户 -->
-
 
     <!-- s 填写客服id与name -->
     <script type="text/javascript">
@@ -364,31 +379,6 @@
             initRongCloud();
             setRongCloudListen();
             connectRongCloudSever();
-            // //getHistoryMessages
-            // RongIMClient.getInstance().getHistoryMessages(RongIMLib.ConversationType.PRIVATE, 'targetId', null, 20, {
-            //     onSuccess: function(list, hasMsg) {
-            //         // hasMsg为boolean值，如果为true则表示还有剩余历史消息可拉取，为false的话表示没有剩余历史消息可供拉取。
-            //         // list 为拉取到的历史消息列表
-            //     },
-            //     onError: function(error) {
-            //         // APP未开启消息漫游或处理异常
-            //         // throw new ERROR ......
-            //     }
-            // });
-            //
-            // //此接口必须在init()方法之后调用。
-            // RongIMClient.getInstance().hasRemoteUnreadMessages('mKmyKqTSf7aNDinwAFMnz7NXKILeV3X0+CCRBOxmtOApmvQjMathViWrePIfq0GuTu9jELQqsckv4AhfjCAKgQ==', {
-            //     onSuccess: function(hasMessage) {
-            //         if (hasMessage) {
-            //             // 有未读的消息
-            //         } else {
-            //             // 没有未读的消息
-            //         }
-            //     },
-            //     onError: function(err) {
-            //         // 错误处理...
-            //     }
-            // });
         });
 
         //初始化融云
@@ -424,6 +414,7 @@
                     }
                 }
             });
+
             // 消息监听器
             RongIMClient.setOnReceiveMessageListener({
                 // 接收到的消息
@@ -433,25 +424,28 @@
                         case RongIMClient.MessageType.TextMessage:
                             var senderUserId = message.senderUserId;
                             var saying = message.content.content;
-                            if (!targetIdJson[senderUserId]) {
-                                targetIdJson[senderUserId] = true;
-                                addListTip(senderUserId, senderUserId);
+                            if (!targetIdJson[senderUserId]) {        //判断会话列表是否不存在该用户的tip
+                                addListTip(senderUserId, senderUserId);        //添加该用户的tip
+                                targetIdJson[senderUserId] = true;             //设置列表已存在该用户的tip
                             }
-                            if (senderUserId == targetId) {
-                                addConversationSaying(saying, senderUserId, false);
-                                RongCloudMessagesInnerDom.parent().scrollTop(RongCloudMessagesInnerDom.height());
-                            }
-                            else {
-                                var tipDom = $("[data-target-id='" + senderUserId + "']").eq(0);
-                                var badgeMark = !tipDom.attr("data-badge");
-                                if (badgeMark) {
-                                    tipDom.find("i.rongcloud-no-remind").before("<span class='rongcloud-badge'>1</span>");
-                                    tipDom.attr("data-badge", "true");
+                            if (senderUserId == targetId || targetId === null) {    //判断发送者是否是当前目标对象，或者是第一个发送者
+                                if (targetId === null) {
+                                    targetId = senderUserId;
                                 }
-                                else {
-                                    var badgeDom = tipDom.find("span.rongcloud-badge");
-                                    var count = badgeDom.text() * 1;
-                                    badgeDom.text(count + 1);
+                                RongCloudMessagesInnerDom.parent().scrollTop(RongCloudMessagesInnerDom.height());    //会话区滚动到最底部
+                                addConversationSaying(message);    //显示该消息
+                            }
+                            else{                                                                       //发送者不是当前目标对象，也不是第一个发送者
+                                var tipDom = $("[data-target-id='" + senderUserId + "']").eq(0);        //获取列表中某一个用户的tip
+                                var badgeMark = tipDom.attr("data-badge");                              //是否显示了未读消息
+                                if (!badgeMark) {                                                       //没有
+                                    tipDom.find("i.rongcloud-no-remind").before("<span class='rongcloud-badge'>1</span>");    //添加未读消息标志
+                                    tipDom.attr("data-badge", "true");                    //修改为显示了未读消息
+                                    unreadMsgJson[senderUserId] = 1;
+                                }
+                                else {                                          //有
+                                    unreadMsgJson[senderUserId] += 1;
+                                    tipDom.find("span.rongcloud-badge").text(unreadMsgJson[senderUserId]);  //修改显示的消息数
                                 }
                             }
                             break;
@@ -465,10 +459,8 @@
             // 连接融云服务器。
             RongIMClient.connect(Token, {
                 onSuccess: function(userId) {
-                    console.log("Login successfully." + userId);
                 },
                 onTokenIncorrect: function() {
-                    console.log('token无效');
                 },
                 onError: function(errorCode) {
                     var info = '';
@@ -499,7 +491,6 @@
             //获取会话列表
             RongIMClient.getInstance().getConversationList({
                 onSuccess: function(list) {
-                    console.log(list);
                 },
                 onError: function(error) {
                     console.log(error);
@@ -508,7 +499,6 @@
 
             RongIMClient.getInstance().getTotalUnreadCount({
                 onSuccess: function(count) {
-                    console.log(count);
                 },
                 onError: function(error) {
                     // error => 获取总未读数错误码。
@@ -517,27 +507,36 @@
         }
 
         //获取历史记录
-        function getHistory() {
+        function getHistory(count, effect) {
             var conversationType = RongIMLib.ConversationType.PRIVATE; //私聊,其他会话选择相应的消息类型即可。
             var timestrap = 0; // 默认传 null，若从头开始获取历史消息，请赋值为 0 ,timestrap = 0;
-            var count = 20; // 每次获取的历史消息条数，范围 0-20 条，可以多次获取。
-            RongIMLib.RongIMClient.getInstance().getHistoryMessages(conversationType, targetId, timestrap, count, {
-                onSuccess: function(list, hasMsg) {
-                    console.log(list);
-                },
-                onError: function(error) {
-                    console.log("GetHistoryMessages,errorcode:" + error);
-                }
-            });
+            if (count > 20 || !count) {
+                count = 20;    // 每次获取的历史消息条数，默认范围 0-20 条，可以多次获取
+            }
+            else if (count == 1) {
+                count = 2;
+            }
+            if (targetId) {
+                RongIMLib.RongIMClient.getInstance().getHistoryMessages(conversationType, targetId, timestrap, count, {
+                    onSuccess: function(list, hasMsg) {
+                        if (count == 2 && effect == "unread") {
+                            addConversationSaying(list[1]);
+                        }
+                        addConversationSaying(list);
+                    },
+                    onError: function(error) {
+                        console.log("GetHistoryMessages,errorcode:" + error);
+                    }
+                });
+            }
         }
 
         //加载未读消息
-        function loadUnreadMsg() {
+        function loadUnreadMsg(callback) {
             var conversationType = RongIMLib.ConversationType.PRIVATE;
             RongIMLib.RongIMClient.getInstance().getUnreadCount(conversationType, targetId, {
                 onSuccess: function(count) {
-                    console.log(count);
-                    // count => 指定会话的总未读数。
+                    if (callback)callback(count);
                 },
                 onError: function() {
                     // error => 获取指定会话未读数错误码。
@@ -545,50 +544,11 @@
             });
         }
 
-        //发送文本消息
-        function sendTextMsg(saying) {
-            var msg = new RongIMLib.TextMessage({
-                content: saying,
-                extra: ""
-            });
-            var conversationtype = RongIMLib.ConversationType.PRIVATE; // 私聊,其他会话选择相应的消息类型即可。
-            RongIMClient.getInstance().sendMessage(conversationtype, targetId, msg, {
-                onSuccess: function(message) {
-                },
-                onError: function(errorCode, message) {
-                    var info = '';
-                    switch (errorCode) {
-                        case RongIMLib.ErrorCode.TIMEOUT:
-                            info = '超时';
-                            break;
-                        case RongIMLib.ErrorCode.UNKNOWN_ERROR:
-                            info = '未知错误';
-                            break;
-                        case RongIMLib.ErrorCode.REJECTED_BY_BLACKLIST:
-                            info = '在黑名单中，无法向对方发送消息';
-                            break;
-                        case RongIMLib.ErrorCode.NOT_IN_DISCUSSION:
-                            info = '不在讨论组中';
-                            break;
-                        case RongIMLib.ErrorCode.NOT_IN_GROUP:
-                            info = '不在群组中';
-                            break;
-                        case RongIMLib.ErrorCode.NOT_IN_CHATROOM:
-                            info = '不在聊天室中';
-                            break;
-                        default:
-                            info = x;
-                            break;
-                    }
-                    console.log('发送失败:' + info);
-                }
-            });
-        }
     </script>
+
 
     <!-- s 执行 -->
     <script type="text/javascript">
-
     </script>
     <!-- e 执行 -->
 </body>
