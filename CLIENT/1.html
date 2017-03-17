@@ -119,21 +119,15 @@
     <script type="text/javascript">
         inputMsgDom.keydown(function (e) {
             if (e.keyCode==13) {
-                if (!e.ctrlKey) {
-                    e.preventDefault();
-                    send();
-                }
-                else if (e.ctrlKey) {
-                    alert(1);
-                    inputMsgDom.text(function (index, text) {
+                e.preventDefault();
+                if (e.ctrlKey) {
+                    inputMsgDom.val(function (index, text) {
                         return text + "\n";
                     });
                 }
-            }
-        });
-        $(document).keydown(function (e) {
-            if (e.keyCode==13) {
-                send();
+                else {
+                    send();
+                }
             }
         });
     </script>
