@@ -203,7 +203,7 @@
                     console.log('发送失败:' + info);
                 }
             });
-            addConversationSaying(msg, "send");
+            addConversationSaying(msg, "only");
         }
     </script>
     <!-- e 发送文本消息 -->
@@ -228,9 +228,17 @@
     <!-- s 展示消息 -->
     <script type="text/javascript">
         function setSayingHtml(message) {
-            var saying = message.content.content ? message.content.content : message.content;
+            var saying = "";
             var name = message.content.extra ? message.content.extra : message.extra;
-            var htmlStr;
+            var htmlStr = "";
+            switch (message.messageType) {
+                case "TextMessage":
+                    saying = "<pre class='rongcloud-Message-entry'>" + (message.content.content ? message.content.content : message.content) + "</pre>";
+                    break;
+                case "ImageMessage":
+                    saying = "<img class='rongcloud-Message-entry' src='" + message.content.imageUri + "'>";
+                    break;
+            }
             if (message.senderUserId == targetId) {        // 发送者id == 接受者ID  即此条消息是对方发送
                 htmlStr = "<div class='rongcloud-Message'>" +
                 "<div class='rongcloud-Messages-unreadLine'></div>" +
@@ -242,7 +250,7 @@
                 "</div>" +
                 "<div class='rongcloud-Message-body'>" +
                 "<div class='rongcloud-Message-text'>" +
-                "<pre class='rongcloud-Message-entry'>" + saying + "</pre>" +
+                saying +
                 "</div>" +
                 "</div>" +
                 "</div>";
@@ -259,7 +267,7 @@
                 "<div class='rongcloud-Message-body' style='text-align:right;'>" +
                 "<div>" +
                 "<div class='rongcloud-Message-text'>" +
-                "<pre class='rongcloud-Message-entry'>" + saying + "</pre>" +
+                saying +
                 "</div>" +
                 "</div>" +
                 "</div>" +
@@ -268,17 +276,17 @@
             return htmlStr;
         }
 
-        function addConversationSaying(messageArgs, effect) {
+        function addConversationSaying(message, effect) {
             var htmlStr = "";
             //设置添加的htmlString
-            if ($.isArray(messageArgs)) { //消息列表
-                var len = messageArgs.length;
+            if ($.isArray(message)) { //消息列表
+                var len = message.length;
                 for (var i = 0; i < len; i++) {
-                    htmlStr += setSayingHtml(messageArgs[i]);
+                    htmlStr += setSayingHtml(message[i]);
                 }
             }
             else {    //单读发送或读取的消息
-                htmlStr = setSayingHtml(messageArgs);
+                htmlStr = setSayingHtml(message);
             }
 
             //在对应位置插入htmlString
@@ -400,6 +408,7 @@
         });
         require(['protobuf', 'RongIMLib'], function(protobuf, RongIMLib) {
             RongIMClient = RongIMLib.RongIMClient;
+            console.log(RongIMLib.ConnectionStatus);
             initRongCloud();
             setRongCloudListen();
             connectRongCloudSever();
@@ -443,37 +452,32 @@
             RongIMClient.setOnReceiveMessageListener({
                 // 接收到的消息
                 onReceived: function(message) {
-                    // 判断消息类型
-                    switch (message.messageType) {
-                        case RongIMClient.MessageType.TextMessage:
-                            var senderUserId = message.senderUserId;
-                            var saying = message.content.content;
-                            if (!targetIdJson[senderUserId]) {        //判断会话列表是否不存在该用户的tip
-                                addListTip(senderUserId, senderUserId);        //添加该用户的tip
-                                targetIdJson[senderUserId] = true;             //设置列表已存在该用户的tip
-                            }
-                            if (senderUserId == targetId || targetId === null) {    //判断发送者是否是当前目标对象，或者是第一个发送者
-                                if (targetId === null) {
-                                    targetId = senderUserId;
-                                }
-                                RongConversationDom.find(".rongcloud-kefuName").text("客户：" + targetId);
-                                addConversationSaying(message, "receive");    //显示该消息
-                                RongCloudMessagesInnerDom.parent().scrollTop(RongCloudMessagesInnerDom.height());    //会话区滚动到最底部
-                            }
-                            else{                                                                       //发送者不是当前目标对象，也不是第一个发送者
-                                var tipDom = $("[data-target-id='" + senderUserId + "']").eq(0);        //获取列表中某一个用户的tip
-                                var badgeMark = tipDom.attr("data-badge");                              //是否显示了未读消息
-                                if (!badgeMark) {                                                       //没有
-                                    tipDom.find("i.rongcloud-no-remind").before("<span class='rongcloud-badge'>1</span>");    //添加未读消息标志
-                                    tipDom.attr("data-badge", "true");                    //修改为显示了未读消息
-                                    unreadMsgJson[senderUserId] = 1;
-                                }
-                                else {                                          //有
-                                    unreadMsgJson[senderUserId] += 1;
-                                    tipDom.find("span.rongcloud-badge").text(unreadMsgJson[senderUserId]);  //修改显示的消息数
-                                }
-                            }
-                            break;
+                    console.log(message);
+                    var senderUserId = message.senderUserId;    //发送者Id
+                    if (!targetIdJson[senderUserId]) {        //判断会话列表是否不存在该用户的tip
+                        addListTip(senderUserId, senderUserId);        //添加该用户的tip
+                        targetIdJson[senderUserId] = true;             //设置列表已存在该用户的tip
+                    }
+                    if (senderUserId == targetId || targetId === null) {    //判断发送者是否是当前目标对象，或者是第一个发送者
+                        if (targetId === null) {
+                            targetId = senderUserId;
+                        }
+                        RongConversationDom.find(".rongcloud-kefuName").text("客户：" + targetId);
+                        addConversationSaying(message, "only");    //显示该消息
+                        RongCloudMessagesInnerDom.parent().scrollTop(RongCloudMessagesInnerDom.height());    //会话区滚动到最底部
+                    }
+                    else{                                                                       //发送者不是当前目标对象，也不是第一个发送者
+                        var tipDom = $("[data-target-id='" + senderUserId + "']").eq(0);        //获取列表中某一个用户的tip
+                        var badgeMark = tipDom.attr("data-badge");                              //是否显示了未读消息
+                        if (!badgeMark) {                                                       //没有
+                            tipDom.find("i.rongcloud-no-remind").before("<span class='rongcloud-badge'>1</span>");    //添加未读消息标志
+                            tipDom.attr("data-badge", "true");                    //修改为显示了未读消息
+                            unreadMsgJson[senderUserId] = 1;
+                        }
+                        else {                                          //有
+                            unreadMsgJson[senderUserId] += 1;
+                            tipDom.find("span.rongcloud-badge").text(unreadMsgJson[senderUserId]);  //修改显示的消息数
+                        }
                     }
                 }
             });
@@ -567,17 +571,17 @@
                         console.log(count);
                         if (effect == "unread") {
                             if (amount == 1) {
-                                addConversationSaying(list[1]);
+                                addConversationSaying(list[1], "only");
                             }
                             else if (amount > 20) {
-                                addConversationSaying(list);
+                                addConversationSaying(list, "whole");
                                 if (hasMsg) {
                                     amount -= 20;
                                     loadHistoryMsg(effect, amount);
                                 }
                             }
                             else {
-                                addConversationSaying(list);
+                                addConversationSaying(list, "whole");
                             }
                         }
                         else if (effect == "history") {
