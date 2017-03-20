@@ -11,6 +11,125 @@
 </head>
 
 <body>
+    <style type="text/css">
+        *{
+            padding: 0;
+            margin: 0;
+            box-sizing:padding-box;
+        }
+        webchat{
+            min-height: 590px;
+        }
+        ul li{
+            list-style: none;
+        }
+        .fl{
+            float: left;
+        }
+        .fr{
+            float: right;
+        }
+        .relative{
+            position: relative;
+        }
+    </style>
+    <webchat>
+        <style media="screen">
+            #webchat-nav{
+                width: 50px;
+                min-height: 590px;
+                background: #000;
+            }
+            #webchat-nav .webchat-nav-list{
+                width: 100%;
+            }
+            #webchat-nav .webchat-nav-list .webchat-nav-tag{
+                width: 100%;
+                height: 50px;
+            }
+            #webchat-nav .webchat-tag-img{
+                width: 30px;
+                height: 30px;
+                margin: 10px 11px 10px 9px;
+            }
+            #webchat-nav .webchat-nav-retract{
+                width: 100%;
+                height: 50px;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+            }
+        </style>
+        <nav class="fl relative" id="webchat-nav">
+            <ul class="webchat-nav-list">
+                <li class="webchat-nav-tag">
+                    <img src="" class="webchat-tag-img">
+                </li>
+                <li class="webchat-nav-tag">
+                    <img src="" class="webchat-tag-img">
+                </li>
+                <li class="webchat-nav-tag">
+                    <img src="" class="webchat-tag-img">
+                </li>
+                <li class="webchat-nav-tag">
+                    <img src="" class="webchat-tag-img">
+                </li>
+            </ul>
+            <div class="webchat-nav-retract">
+                <img src="" class="webchat-tag-img">
+            </div>
+        </nav>
+        <style media="screen">
+            #webchat-list{
+                width: 250px;
+                min-height: 590px;
+                background: RED;
+            }
+            #webchat-list .webchat-list-action{
+                width: 200px;
+                height: 50px;
+                border: 1px solid #D9D9D9;
+            }
+            #webchat-list .webchat-list-action .webchat-input-box{
+                width: 190px;
+                height: 24px;
+                border: 1px solid #D9D9D9;
+                margin-top: 12px;
+                margin-bottom: 12px;
+                margin-left: 10px;
+            }
+            #webchat-list .webchat-list-action .webchat-input-box .list-input{
+                width: 100%;
+                height: 24px;
+                margin: 0;
+                outline: none;
+                border: none;
+                text-indent: 2px;
+            }
+        </style>
+        <div class="fl" id="webchat-list">
+            <div class="webchat-list-action">
+                <div class="webchat-input-box">
+                    <input type="text" class="list-input fl">
+                    <i></i>
+                </div>
+            </div>
+            <ul>
+
+            </ul>
+        </div>
+        <style media="screen">
+            #webchat-conversation{
+                width: 550px;
+                min-height: 590px;
+                background: blue;
+            }
+        </style>
+        <div class="fl" id="webchat-conversation">
+
+        </div>
+
+    </webchat>
     <div id="rong-widget-box" class="rongcloud-container">
         <div id="rong-conversation" data-current-target-id="" class="rongcloud-kefuChatBox rongcloud-both rongcloud-am-fade-and-slide-top" style="height: 600px; width: 500px; position: absolute; right: 201px; bottom: 3px;">
             <div class="rongcloud-kefuChat">
