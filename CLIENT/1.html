@@ -290,10 +290,10 @@
             }
 
             //在对应位置插入htmlString
-            if (effect == "send" || effect == "receive") {
+            if (effect == "only") {
                 RongCloudMessagesInnerDom.children().last().after(htmlStr);
             }
-            else {
+            else if (effect == "whole") {
                 RongCloudMessagesInnerDom.children().first().after(htmlStr);
             }
         }
@@ -568,7 +568,6 @@
             if (targetId !== null && hasHistoryMark) {            // 存在targetId
                 RongIMLib.RongIMClient.getInstance().getRemoteHistoryMessages(conversationType, targetId, timestrap, count, {
                     onSuccess: function(list, hasMsg) {
-                        console.log(count);
                         if (effect == "unread") {
                             if (amount == 1) {
                                 addConversationSaying(list[1], "only");
@@ -610,12 +609,6 @@
         }
 
     </script>
-
-
-    <!-- s 执行 -->
-    <script type="text/javascript">
-    </script>
-    <!-- e 执行 -->
 </body>
 
 </html>
